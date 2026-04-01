@@ -1,0 +1,452 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: var(--color-background-primary);
+  --bg2: var(--color-background-secondary);
+  --text: var(--color-text-primary);
+  --text2: var(--color-text-secondary);
+  --text3: var(--color-text-tertiary);
+  --border: var(--color-border-tertiary);
+  --border2: var(--color-border-secondary);
+  --r: var(--border-radius-md);
+  --rl: var(--border-radius-lg);
+}
+.app { padding: 1rem; max-width: 480px; margin: 0 auto; font-family: var(--font-sans); }
+.tab-bar { display: flex; gap: 4px; background: var(--bg2); border-radius: var(--rl); padding: 4px; margin-bottom: 1.25rem; }
+.tab { flex: 1; padding: 7px 2px; border: none; background: transparent; border-radius: var(--r); font-size: 11px; color: var(--text2); cursor: pointer; }
+.tab.active { background: var(--bg); color: var(--text); font-weight: 500; border: 0.5px solid var(--border2); }
+.month-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.month-nav { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: 5px 12px; cursor: pointer; font-size: 13px; color: var(--text); }
+.month-label { font-size: 15px; font-weight: 500; color: var(--text); }
+.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+.metric { background: var(--bg2); border-radius: var(--r); padding: 10px 12px; }
+.metric-label { font-size: 11px; color: var(--text3); margin-bottom: 3px; }
+.metric-value { font-size: 18px; font-weight: 500; color: var(--text); }
+.green { color: var(--color-text-success); }
+.red { color: var(--color-text-danger); }
+.blue { color: var(--color-text-info); }
+.orange { color: var(--color-text-warning); }
+.card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--rl); margin-bottom: 8px; overflow: hidden; }
+.card-body { padding: 12px 14px; }
+.row { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 0.5px solid var(--border); }
+.row:last-child { border-bottom: none; }
+.row-name { flex: 1; font-size: 13px; color: var(--text); }
+.row-name.dim { color: var(--text3); text-decoration: line-through; }
+.row-sub { font-size: 11px; color: var(--text3); }
+.row-amt { font-size: 13px; font-weight: 500; color: var(--text); }
+.row-amt.dim { color: var(--text3); }
+.check { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--border2); background: transparent; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; color: transparent; }
+.check.on { background: var(--color-background-success); border-color: var(--color-text-success); color: var(--color-text-success); }
+.section-label { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin: 1rem 0 0.5rem; }
+.btn-primary { padding: 10px 16px; background: var(--color-background-info); color: var(--color-text-info); border: none; border-radius: var(--r); font-size: 13px; font-weight: 500; cursor: pointer; }
+.btn-ghost { width: 100%; padding: 9px; border: 0.5px dashed var(--border2); border-radius: var(--r); background: transparent; color: var(--text2); font-size: 13px; cursor: pointer; margin-top: 6px; }
+.btn-sm { padding: 5px 10px; border: 0.5px solid var(--border2); border-radius: var(--r); background: transparent; color: var(--text2); font-size: 12px; cursor: pointer; }
+.btn-danger { padding: 3px 7px; border: 0.5px solid var(--color-border-danger); border-radius: var(--r); background: transparent; color: var(--color-text-danger); font-size: 11px; cursor: pointer; }
+input, select { width: 100%; padding: 8px 10px; border: 0.5px solid var(--border2); border-radius: var(--r); background: var(--bg); color: var(--text); font-size: 13px; font-family: var(--font-sans); }
+input:focus, select:focus { outline: none; border-color: var(--color-text-info); }
+label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 4px; margin-top: 10px; }
+label:first-child { margin-top: 0; }
+.badge { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 500; }
+.badge-warn { background: var(--color-background-warning); color: var(--color-text-warning); }
+.badge-ok { background: var(--color-background-success); color: var(--color-text-success); }
+.progress-wrap { height: 5px; background: var(--bg2); border-radius: 3px; margin-top: 6px; }
+.progress-fill { height: 5px; border-radius: 3px; }
+.overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 10; padding: 1rem; }
+.modal { background: var(--bg); border-radius: var(--rl); padding: 1.25rem; width: 100%; max-width: 380px; border: 0.5px solid var(--border2); max-height: 80vh; overflow-y: auto; }
+.modal-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 1rem; }
+.modal-actions { display: flex; gap: 8px; margin-top: 1rem; justify-content: flex-end; }
+.filter-bar { display: flex; gap: 6px; margin-bottom: 0.75rem; overflow-x: auto; padding-bottom: 2px; }
+.filter-chip { padding: 5px 10px; border: 0.5px solid var(--border2); border-radius: 20px; background: transparent; color: var(--text2); font-size: 12px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.filter-chip.active { background: var(--bg2); color: var(--text); font-weight: 500; }
+.salary-banner { background: var(--color-background-success); border: 0.5px solid var(--color-border-success); border-radius: var(--rl); padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; cursor: pointer; }
+.salary-pending { background: var(--color-background-warning); border: 0.5px solid var(--color-border-warning); border-radius: var(--rl); padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; cursor: pointer; }
+.acct-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.balance-display { font-size: 18px; font-weight: 500; color: var(--text); cursor: pointer; border-bottom: 1px dashed var(--border2); }
+.balance-display:hover { border-color: var(--color-text-info); color: var(--color-text-info); }
+.balance-input { width: 110px; font-size: 16px; font-weight: 500; padding: 4px 8px; }
+.save-inline { padding: 4px 10px; background: var(--color-background-info); color: var(--color-text-info); border: none; border-radius: var(--r); font-size: 12px; font-weight: 500; cursor: pointer; }
+
+/* year view */
+.search-wrap { position: relative; margin-bottom: 0.75rem; }
+.search-wrap input { padding-left: 32px; }
+.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--text3); pointer-events: none; }
+.month-group { margin-bottom: 1rem; }
+.month-group-header { display: flex; justify-content: space-between; align-items: center; padding: 6px 2px; cursor: pointer; }
+.month-group-title { font-size: 13px; font-weight: 500; color: var(--text); }
+.month-group-amt { font-size: 13px; color: var(--text2); }
+.month-bar-chart { display: flex; gap: 4px; align-items: flex-end; margin-bottom: 1rem; height: 60px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.bar-fill { width: 100%; border-radius: 3px 3px 0 0; min-height: 2px; }
+.bar-lbl { font-size: 9px; color: var(--text3); }
+.highlight { background: var(--color-background-info); border-radius: 2px; }
+.year-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.year-label { font-size: 15px; font-weight: 500; color: var(--text); }
+</style>
+
+<div class="app" id="root" style="position: relative; min-height: 600px;">
+  <div class="tab-bar">
+    <button class="tab" id="t0" onclick="setTab(0)">Übersicht</button>
+    <button class="tab" id="t1" onclick="setTab(1)">Ausgaben</button>
+    <button class="tab" id="t2" onclick="setTab(2)">Jahr</button>
+    <button class="tab" id="t3" onclick="setTab(3)">Konten</button>
+    <button class="tab" id="t4" onclick="setTab(4)">Einstellungen</button>
+  </div>
+  <div id="content"></div>
+  <div id="modal-layer"></div>
+</div>
+
+<script>
+const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const MONTHS_SHORT = ['Jan','Feb','Mrz','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+const COLORS = ['#3266ad','#1D9E75','#BA7517','#D4537E','#7F77DD','#D85A30'];
+
+let S = {
+  tab: 0,
+  month: new Date().getMonth(),
+  year: new Date().getFullYear(),
+  yearView: new Date().getFullYear(),
+  yearSearch: '',
+  yearFilterAcct: 0,
+  yearCollapsed: {},
+  accounts: [
+    { id: 1, name: 'Fixkosten', type: 'Fixkosten', color: '#3266ad', alloc: 335.25, balance: 0 },
+    { id: 2, name: 'Sparplan', type: 'Sparen', color: '#1D9E75', alloc: 100, balance: 0 },
+    { id: 3, name: 'Taschengeld', type: 'Bar/Karte', color: '#BA7517', alloc: 100, balance: 100 },
+    { id: 4, name: 'Girokonto', type: 'Rest', color: '#7F77DD', alloc: 0, balance: 565 },
+  ],
+  salaryEvents: {},
+  expenses: {
+    '2025-0': [
+      { id: 1, name: 'Audible', amount: 4.95, accountId: 1, description: 'Abo', paid: true, date: '05.01.2025' },
+      { id: 2, name: 'McFit', amount: 29.90, accountId: 1, description: 'Gym Abo', paid: true, date: '01.01.2025' },
+      { id: 3, name: 'Yazio', amount: 29.90, accountId: 1, description: 'Jahresabo', paid: true, date: '15.01.2025' },
+    ],
+    '2025-1': [
+      { id: 4, name: 'Lieferando', amount: 16.64, accountId: 4, description: '', paid: true, date: '10.02.2025' },
+      { id: 5, name: 'Zalando', amount: 172.95, accountId: 4, description: 'Kleidung', paid: true, date: '14.02.2025' },
+      { id: 6, name: 'McFit', amount: 29.90, accountId: 1, description: 'Gym Abo', paid: true, date: '01.02.2025' },
+    ],
+    '2025-2': [
+      { id: 7, name: 'Dm', amount: 32.70, accountId: 3, description: 'Drogerie', paid: true, date: '05.03.2025' },
+      { id: 8, name: 'Bubble Tea', amount: 13.20, accountId: 3, description: 'Café', paid: true, date: '12.03.2025' },
+      { id: 9, name: 'McFit', amount: 29.90, accountId: 1, description: 'Gym Abo', paid: true, date: '01.03.2025' },
+      { id: 10, name: 'Thalia', amount: 16.99, accountId: 4, description: 'Bücher', paid: false, date: '20.03.2025' },
+    ],
+  },
+  modal: null,
+  filterAcct: 0,
+  editingBalance: null,
+};
+
+function mk() { return S.year + '-' + S.month; }
+function getExps() { return S.expenses[mk()] || []; }
+function getSalary() { return S.salaryEvents[mk()]; }
+function restAccount() { return S.accounts.find(a => a.type === 'Rest'); }
+function fmt(n) {
+  return (n < 0 ? '-' : '') + Math.abs(n).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+
+function setTab(i) { S.tab = i; S.editingBalance = null; render(); }
+function prevMonth() { S.month--; if (S.month < 0) { S.month = 11; S.year--; } render(); }
+function nextMonth() { S.month++; if (S.month > 11) { S.month = 0; S.year++; } render(); }
+function prevYear() { S.yearView--; render(); }
+function nextYear() { S.yearView++; render(); }
+
+function openSalaryModal() { S.modal = { type: 'salary' }; render(); }
+function confirmSalary() {
+  const amt = parseFloat(document.getElementById('sal-input').value);
+  if (isNaN(amt) || amt <= 0) return;
+  const fixedAlloc = S.accounts.filter(a => a.type !== 'Rest').reduce((s,a) => s + a.alloc, 0);
+  const restAmt = Math.max(0, amt - fixedAlloc);
+  S.salaryEvents[mk()] = { amount: amt, date: new Date().toLocaleDateString('de-DE'), distribution: S.accounts.map(a => ({ accountId: a.id, amount: a.type === 'Rest' ? restAmt : a.alloc })) };
+  S.accounts.forEach(a => { const d = S.salaryEvents[mk()].distribution.find(d => d.accountId === a.id); if (d) a.balance = parseFloat((a.balance + d.amount).toFixed(2)); });
+  S.modal = null; render();
+}
+
+function openAddExpense() { S.modal = { type: 'addexp' }; render(); }
+function confirmAddExpense() {
+  const name = document.getElementById('exp-name').value.trim();
+  const amt = parseFloat(document.getElementById('exp-amt').value);
+  const accId = parseInt(document.getElementById('exp-acc').value);
+  const desc = document.getElementById('exp-desc').value.trim();
+  if (!name || isNaN(amt) || amt <= 0) return;
+  const key = mk();
+  if (!S.expenses[key]) S.expenses[key] = [];
+  S.expenses[key].push({ id: Date.now(), name, amount: amt, accountId: accId, description: desc, paid: false, date: new Date().toLocaleDateString('de-DE') });
+  S.modal = null; render();
+}
+
+function togglePaid(id) {
+  const exps = S.expenses[mk()]; if (!exps) return;
+  const e = exps.find(x => x.id === id); if (!e) return;
+  e.paid = !e.paid;
+  const acc = S.accounts.find(a => a.id === e.accountId);
+  if (acc) acc.balance = parseFloat((acc.balance + (e.paid ? -e.amount : e.amount)).toFixed(2));
+  render();
+}
+
+function deleteExpense(id) {
+  const key = mk(); if (!S.expenses[key]) return;
+  const e = S.expenses[key].find(x => x.id === id);
+  if (e && e.paid) { const acc = S.accounts.find(a => a.id === e.accountId); if (acc) acc.balance = parseFloat((acc.balance + e.amount).toFixed(2)); }
+  S.expenses[key] = S.expenses[key].filter(x => x.id !== id); render();
+}
+
+function startEditBalance(id) { S.editingBalance = id; render(); }
+function saveBalance(id) {
+  const el = document.getElementById('bal-inp-' + id); if (!el) return;
+  const val = parseFloat(el.value);
+  if (!isNaN(val)) { const acc = S.accounts.find(a => a.id === id); if (acc) acc.balance = val; }
+  S.editingBalance = null; render();
+}
+
+function saveSettings() {
+  S.accounts.forEach(a => {
+    const nel = document.getElementById('aname-' + a.id); if (nel) a.name = nel.value || a.name;
+    const tel = document.getElementById('atype-' + a.id); if (tel) a.type = tel.value;
+    const ael = document.getElementById('alloc-' + a.id); if (ael) a.alloc = parseFloat(ael.value) || 0;
+  });
+  S.modal = { type: 'toast', msg: 'Gespeichert' };
+  setTimeout(() => { S.modal = null; render(); }, 1400); render();
+}
+
+function openAddAccount() { S.modal = { type: 'addacct' }; render(); }
+function confirmAddAccount() {
+  const name = document.getElementById('acct-name').value.trim();
+  const type2 = document.getElementById('acct-type').value;
+  const alloc = parseFloat(document.getElementById('acct-alloc').value) || 0;
+  const bal = parseFloat(document.getElementById('acct-bal').value) || 0;
+  if (!name) return;
+  S.accounts.push({ id: Date.now(), name, type: type2, color: COLORS[S.accounts.length % COLORS.length], alloc, balance: bal });
+  S.modal = null; render();
+}
+
+function getAllYearExps(year) {
+  const result = [];
+  for (let m = 0; m < 12; m++) {
+    const key = year + '-' + m;
+    (S.expenses[key] || []).forEach(e => result.push({ ...e, _month: m }));
+  }
+  return result;
+}
+
+function matchesSearch(e, q) {
+  if (!q) return true;
+  const lower = q.toLowerCase();
+  return e.name.toLowerCase().includes(lower) || (e.description || '').toLowerCase().includes(lower);
+}
+
+function highlightText(text, q) {
+  if (!q) return text;
+  const idx = text.toLowerCase().indexOf(q.toLowerCase());
+  if (idx === -1) return text;
+  return text.slice(0, idx) + '<mark class="highlight">' + text.slice(idx, idx + q.length) + '</mark>' + text.slice(idx + q.length);
+}
+
+function renderOverview() {
+  const sal = getSalary();
+  const exps = getExps();
+  const totalExp = exps.reduce((s,e) => s + e.amount, 0);
+  const pendingExp = exps.filter(e => !e.paid).reduce((s,e) => s + e.amount, 0);
+  const salAmt = sal ? sal.amount : 0;
+  const totalBalance = S.accounts.reduce((s,a) => s + a.balance, 0);
+  const usedPct = salAmt > 0 ? Math.min(100, Math.round(totalExp / salAmt * 100)) : 0;
+  const salBanner = !sal
+    ? `<div class="salary-pending" onclick="openSalaryModal()"><div><div style="font-size:13px;font-weight:500;color:var(--color-text-warning);">Gehalt noch nicht gebucht</div><div style="font-size:11px;color:var(--color-text-warning);opacity:.8;">Tippe hier, wenn Gehalt eingegangen ist</div></div><span style="font-size:20px;">💰</span></div>`
+    : `<div class="salary-banner" onclick="openSalaryModal()"><div><div style="font-size:13px;font-weight:500;color:var(--color-text-success);">Gehalt gebucht: ${fmt(sal.amount)}</div><div style="font-size:11px;color:var(--color-text-success);opacity:.8;">${sal.date} · auf ${S.accounts.length} Konten verteilt</div></div><span style="font-size:18px;color:var(--color-text-success);">✓</span></div>`;
+  const distRows = sal ? sal.distribution.map(d => { const acc = S.accounts.find(a => a.id === d.accountId); return acc ? `<div class="row"><div class="acct-dot" style="background:${acc.color}"></div><div class="row-name">${acc.name}</div><div class="row-amt blue">${fmt(d.amount)}</div></div>` : ''; }).join('') : '';
+  const pendingRows = exps.filter(e => !e.paid).slice(0,5).map(e => { const acc = S.accounts.find(a => a.id === e.accountId); return `<div class="row"><button class="check" onclick="togglePaid(${e.id})">✓</button><div style="flex:1"><div class="row-name">${e.name}</div>${e.description?`<div class="row-sub">${e.description}</div>`:''}</div>${acc?`<div class="acct-dot" style="background:${acc.color}"></div>`:''}<div class="row-amt">${fmt(e.amount)}</div></div>`; }).join('');
+  return `
+    <div class="month-bar"><button class="month-nav" onclick="prevMonth()">&#8592;</button><span class="month-label">${MONTHS[S.month]} ${S.year}</span><button class="month-nav" onclick="nextMonth()">&#8594;</button></div>
+    ${salBanner}
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label">Einnahmen</div><div class="metric-value green">${salAmt>0?fmt(salAmt):'—'}</div></div>
+      <div class="metric"><div class="metric-label">Ausstehend</div><div class="metric-value ${pendingExp>0?'orange':''}">${fmt(pendingExp)}</div></div>
+      <div class="metric"><div class="metric-label">Ausgaben</div><div class="metric-value">${fmt(totalExp)}</div></div>
+      <div class="metric"><div class="metric-label">Gesamtsaldo</div><div class="metric-value ${totalBalance<0?'red':'blue'}">${fmt(totalBalance)}</div></div>
+    </div>
+    ${salAmt>0?`<div class="card"><div class="card-body"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span style="font-size:12px;color:var(--text2);">Budget verbraucht</span><span style="font-size:12px;font-weight:500;">${usedPct}%</span></div><div class="progress-wrap"><div class="progress-fill" style="width:${usedPct}%;background:${usedPct>90?'#E24B4A':usedPct>70?'#EF9F27':'#1D9E75'};"></div></div></div></div>`:''}
+    ${sal?`<div class="section-label">Verteilung</div><div class="card">${distRows}</div>`:''}
+    ${pendingExp>0?`<div class="section-label">Ausstehend <span class="badge badge-warn">${exps.filter(e=>!e.paid).length}</span></div><div class="card">${pendingRows}</div>`:''}
+    ${pendingExp===0&&exps.length>0?`<div style="text-align:center;padding:1rem;font-size:13px;color:var(--color-text-success);">✓ Alle Ausgaben bezahlt</div>`:''}
+  `;
+}
+
+function renderExpenses() {
+  const exps = getExps();
+  const filtered = S.filterAcct===0 ? exps : exps.filter(e => e.accountId===S.filterAcct);
+  const pending = filtered.filter(e => !e.paid);
+  const paid = filtered.filter(e => e.paid);
+  const chips = `<div class="filter-bar"><button class="filter-chip ${S.filterAcct===0?'active':''}" onclick="S.filterAcct=0;render()">Alle</button>${S.accounts.map(a=>`<button class="filter-chip ${S.filterAcct===a.id?'active':''}" onclick="S.filterAcct=${a.id};render()"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${a.color};margin-right:4px;"></span>${a.name}</button>`).join('')}</div>`;
+  const expRow = e => { const acc = S.accounts.find(a => a.id===e.accountId); return `<div class="row"><button class="check ${e.paid?'on':''}" onclick="togglePaid(${e.id})">✓</button><div style="flex:1"><div class="row-name ${e.paid?'dim':''}">${e.name}</div><div class="row-sub">${e.description?e.description+' · ':''}${e.date}${acc?' · '+acc.name:''}</div></div><div class="row-amt ${e.paid?'dim':''}">${fmt(e.amount)}</div><button class="btn-danger" onclick="deleteExpense(${e.id})">✕</button></div>`; };
+  return `
+    <div class="month-bar"><button class="month-nav" onclick="prevMonth()">&#8592;</button><span class="month-label">${MONTHS[S.month]} ${S.year}</span><button class="month-nav" onclick="nextMonth()">&#8594;</button></div>
+    ${chips}
+    <div style="font-size:12px;color:var(--text2);margin-bottom:0.5rem;">${filtered.length} Ausgaben · ${fmt(filtered.reduce((s,e)=>s+e.amount,0))}</div>
+    ${pending.length>0?`<div class="section-label">Ausstehend</div><div class="card">${pending.map(expRow).join('')}</div>`:''}
+    ${paid.length>0?`<div class="section-label">Bezahlt <span class="badge badge-ok">${fmt(paid.reduce((s,e)=>s+e.amount,0))}</span></div><div class="card">${paid.map(expRow).join('')}</div>`:''}
+    ${filtered.length===0?`<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px;">Noch keine Ausgaben</div>`:''}
+    <button class="btn-ghost" onclick="openAddExpense()">+ Ausgabe hinzufügen</button>
+  `;
+}
+
+function renderYear() {
+  const q = S.yearSearch.trim();
+  const allExps = getAllYearExps(S.yearView);
+  const filtered = allExps.filter(e => (S.yearFilterAcct === 0 || e.accountId === S.yearFilterAcct) && matchesSearch(e, q));
+
+  const yearTotal = filtered.reduce((s,e) => s + e.amount, 0);
+  const yearPaid = filtered.filter(e => e.paid).reduce((s,e) => s + e.amount, 0);
+  const monthTotals = Array.from({length:12}, (_,m) => filtered.filter(e => e._month===m).reduce((s,e)=>s+e.amount,0));
+  const maxBar = Math.max(...monthTotals, 1);
+
+  const barChart = `<div class="month-bar-chart">${monthTotals.map((v,i) => {
+    const h = Math.max(2, Math.round(v / maxBar * 52));
+    const isCur = i === S.month && S.yearView === S.year;
+    return `<div class="bar-col"><div class="bar-fill" style="height:${h}px;background:${isCur?'#3266ad':'#B5D4F4'};"></div><div class="bar-lbl">${MONTHS_SHORT[i].slice(0,1)}</div></div>`;
+  }).join('')}</div>`;
+
+  const chips = `<div class="filter-bar"><button class="filter-chip ${S.yearFilterAcct===0?'active':''}" onclick="S.yearFilterAcct=0;render()">Alle</button>${S.accounts.map(a=>`<button class="filter-chip ${S.yearFilterAcct===a.id?'active':''}" onclick="S.yearFilterAcct=${a.id};render()"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${a.color};margin-right:4px;"></span>${a.name}</button>`).join('')}</div>`;
+
+  // group by month
+  const monthGroups = [];
+  for (let m = 11; m >= 0; m--) {
+    const rows = filtered.filter(e => e._month === m);
+    if (rows.length === 0) continue;
+    const total = rows.reduce((s,e)=>s+e.amount,0);
+    const collapsed = S.yearCollapsed[m] !== false; // default collapsed
+    monthGroups.push({ m, rows, total, collapsed });
+  }
+
+  const groupsHtml = monthGroups.map(g => {
+    const rowsHtml = g.rows.map(e => {
+      const acc = S.accounts.find(a => a.id===e.accountId);
+      const nameHl = highlightText(e.name, q);
+      const descHl = e.description ? highlightText(e.description, q) : '';
+      return `<div class="row">
+        ${acc?`<div class="acct-dot" style="background:${acc.color}"></div>`:''}
+        <div style="flex:1">
+          <div class="row-name ${e.paid?'dim':''}">${nameHl}</div>
+          <div class="row-sub">${descHl?descHl+' · ':''}${e.date}${acc?' · '+acc.name:''}</div>
+        </div>
+        <div class="row-amt ${e.paid?'dim':''}">${fmt(e.amount)}</div>
+        ${e.paid?`<span style="font-size:10px;color:var(--color-text-success);">✓</span>`:`<span style="font-size:10px;color:var(--color-text-warning);">○</span>`}
+      </div>`;
+    }).join('');
+    return `<div class="month-group">
+      <div class="month-group-header" onclick="S.yearCollapsed[${g.m}]=${!g.collapsed};render()">
+        <span class="month-group-title">${MONTHS[g.m]} ${S.yearView}</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="month-group-amt">${fmt(g.total)}</span>
+          <span style="font-size:10px;color:var(--text3);">${g.collapsed?'▼':'▲'}</span>
+        </div>
+      </div>
+      ${g.collapsed?'':`<div class="card">${rowsHtml}</div>`}
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="year-nav">
+      <button class="month-nav" onclick="prevYear()">&#8592;</button>
+      <span class="year-label">${S.yearView}</span>
+      <button class="month-nav" onclick="nextYear()">&#8594;</button>
+    </div>
+
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Suche nach Name oder Beschreibung…" value="${S.yearSearch}" oninput="S.yearSearch=this.value;render()">
+    </div>
+
+    ${chips}
+
+    <div class="metric-grid" style="margin-bottom:1rem;">
+      <div class="metric"><div class="metric-label">Jahresausgaben</div><div class="metric-value">${fmt(yearTotal)}</div></div>
+      <div class="metric"><div class="metric-label">Davon bezahlt</div><div class="metric-value green">${fmt(yearPaid)}</div></div>
+      <div class="metric"><div class="metric-label">Ø pro Monat</div><div class="metric-value blue">${fmt(yearTotal/12)}</div></div>
+      <div class="metric"><div class="metric-label">Einträge</div><div class="metric-value">${filtered.length}</div></div>
+    </div>
+
+    ${barChart}
+
+    ${filtered.length===0?`<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px;">${q?'Keine Treffer für "'+q+'"':'Keine Ausgaben in diesem Jahr'}</div>`:''}
+    ${groupsHtml}
+  `;
+}
+
+function renderAccounts() {
+  return `
+    <div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:0.25rem;">Konten</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem;">Tippe auf einen Kontostand, um ihn anzupassen.</div>
+    ${S.accounts.map(a => {
+      const exps = getExps().filter(e => e.accountId===a.id);
+      const paidSpent = exps.filter(e=>e.paid).reduce((s,e)=>s+e.amount,0);
+      const pending = exps.filter(e=>!e.paid).reduce((s,e)=>s+e.amount,0);
+      const pct = (a.balance+paidSpent) > 0 ? Math.min(100, Math.round(paidSpent/(a.balance+paidSpent)*100)) : 0;
+      const isEditing = S.editingBalance === a.id;
+      const balSection = isEditing
+        ? `<div style="display:flex;align-items:center;gap:6px;"><input id="bal-inp-${a.id}" type="number" value="${a.balance}" class="balance-input" onkeydown="if(event.key==='Enter')saveBalance(${a.id})"><button class="save-inline" onclick="saveBalance(${a.id})">OK</button><button class="btn-sm" onclick="S.editingBalance=null;render()" style="padding:4px 8px;">✕</button></div>`
+        : `<div style="display:flex;align-items:baseline;gap:6px;"><span class="balance-display" onclick="startEditBalance(${a.id})">${fmt(a.balance)}</span><span style="font-size:11px;color:var(--text3);">aktuell</span></div>`;
+      return `<div class="card"><div class="card-body">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <div style="width:12px;height:12px;border-radius:50%;background:${a.color};flex-shrink:0;margin-top:3px;"></div>
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+              <div><div style="font-size:14px;font-weight:500;color:var(--text);">${a.name}</div><div style="font-size:11px;color:var(--text3);">${a.type} · ${fmt(a.alloc)}/Monat</div></div>
+              <div style="text-align:right;">${balSection}</div>
+            </div>
+            <div class="progress-wrap"><div class="progress-fill" style="width:${pct}%;background:${a.color};opacity:0.7;"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:4px;">
+              <span>Bezahlt: ${fmt(paidSpent)}</span>
+              ${pending>0?`<span style="color:var(--color-text-warning);">Ausstehend: ${fmt(pending)}</span>`:`<span style="color:var(--color-text-success);">Alles bezahlt</span>`}
+            </div>
+          </div>
+        </div>
+      </div></div>`;
+    }).join('')}
+    <button class="btn-ghost" onclick="openAddAccount()">+ Konto hinzufügen</button>
+  `;
+}
+
+function renderSettings() {
+  const fixedAlloc = S.accounts.filter(a=>a.type!=='Rest').reduce((s,a)=>s+a.alloc,0);
+  return `
+    <div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:0.75rem;">Einstellungen</div>
+    <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:0.5rem;">Konten & Zuteilung</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:0.75rem;">"Rest"-Konten erhalten den verbleibenden Betrag nach allen festen Zuteilungen.</div>
+    ${S.accounts.map(a=>`<div style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px;">
+      <div style="width:10px;height:10px;border-radius:50%;background:${a.color};flex-shrink:0;"></div>
+      <div style="flex:1;"><input id="aname-${a.id}" value="${a.name}" style="margin-bottom:4px;padding:5px 8px;font-size:13px;"><select id="atype-${a.id}" style="font-size:12px;padding:4px 6px;">${['Fixkosten','Sparen','Bar/Karte','Sonstiges','Rest'].map(t=>`<option ${a.type===t?'selected':''}>${t}</option>`).join('')}</select></div>
+      <div style="text-align:right;min-width:85px;"><div style="font-size:11px;color:var(--text3);margin-bottom:4px;">${a.type==='Rest'?'Auto':'€/Monat'}</div>${a.type==='Rest'?`<div style="font-size:13px;color:var(--text3);">Rest</div>`:`<input id="alloc-${a.id}" type="number" value="${a.alloc}" style="width:85px;text-align:right;">`}</div>
+    </div>`).join('')}
+    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem;">Feste Zuteilungen: ${fmt(fixedAlloc)}</div>
+    <button class="btn-primary" onclick="saveSettings()" style="width:100%;">Speichern</button>
+  `;
+}
+
+function renderModal() {
+  const m = S.modal; if (!m) return '';
+  if (m.type==='toast') return `<div style="position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);background:var(--color-background-success);color:var(--color-text-success);padding:8px 16px;border-radius:var(--r);font-size:13px;font-weight:500;white-space:nowrap;z-index:20;">${m.msg}</div>`;
+  let inner = '';
+  if (m.type==='salary') {
+    const fixedAlloc = S.accounts.filter(a=>a.type!=='Rest').reduce((s,a)=>s+a.alloc,0);
+    inner = `<div class="modal"><div class="modal-title">💰 Gehalt eingegangen</div><label>Betrag (€)</label><input id="sal-input" type="number" placeholder="z.B. 1250" autofocus><div style="font-size:12px;color:var(--text3);margin-top:8px;margin-bottom:10px;">Feste Zuteilungen: ${fmt(fixedAlloc)} · Rest → ${restAccount()?restAccount().name:'Girokonto'}</div><div style="border:0.5px solid var(--border);border-radius:var(--r);overflow:hidden;">${S.accounts.map(a=>`<div class="row"><div class="acct-dot" style="background:${a.color}"></div><span class="row-name">${a.name}</span><span style="font-size:12px;color:var(--text2);">${a.type==='Rest'?'Rest':fmt(a.alloc)}</span></div>`).join('')}</div><div class="modal-actions"><button class="btn-sm" onclick="S.modal=null;render()">Abbrechen</button><button class="btn-primary" onclick="confirmSalary()">Bestätigen & verteilen</button></div></div>`;
+  }
+  if (m.type==='addexp') {
+    inner = `<div class="modal"><div class="modal-title">Ausgabe hinzufügen</div><label>Bezeichnung *</label><input id="exp-name" placeholder="z.B. Audible" autofocus><label>Betrag (€) *</label><input id="exp-amt" type="number" placeholder="4.99"><label>Konto</label><select id="exp-acc">${S.accounts.map(a=>`<option value="${a.id}">${a.name}</option>`).join('')}</select><label>Beschreibung (optional)</label><input id="exp-desc" placeholder="z.B. Monatliches Abo"><div class="modal-actions"><button class="btn-sm" onclick="S.modal=null;render()">Abbrechen</button><button class="btn-primary" onclick="confirmAddExpense()">Hinzufügen</button></div></div>`;
+  }
+  if (m.type==='addacct') {
+    inner = `<div class="modal"><div class="modal-title">Konto hinzufügen</div><label>Name *</label><input id="acct-name" placeholder="z.B. Notgroschen"><label>Typ</label><select id="acct-type">${['Fixkosten','Sparen','Bar/Karte','Sonstiges','Rest'].map(t=>`<option>${t}</option>`).join('')}</select><label>Monatliche Zuteilung (€)</label><input id="acct-alloc" type="number" placeholder="0"><label>Aktueller Kontostand (€)</label><input id="acct-bal" type="number" placeholder="0"><div class="modal-actions"><button class="btn-sm" onclick="S.modal=null;render()">Abbrechen</button><button class="btn-primary" onclick="confirmAddAccount()">Hinzufügen</button></div></div>`;
+  }
+  return `<div class="overlay" onclick="if(event.target===this){S.modal=null;render()}">${inner}</div>`;
+}
+
+function render() {
+  ['t0','t1','t2','t3','t4'].forEach((id,i) => document.getElementById(id).classList.toggle('active', S.tab===i));
+  const tabs = [renderOverview, renderExpenses, renderYear, renderAccounts, renderSettings];
+  document.getElementById('content').innerHTML = tabs[S.tab]();
+  document.getElementById('modal-layer').innerHTML = renderModal();
+}
+
+render();
+</script>
