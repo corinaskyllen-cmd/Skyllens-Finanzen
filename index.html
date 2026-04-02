@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Finanzen">
+<meta name="theme-color" content="#f7f6f2">
+<title>FinanzTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --surface2: #f0efe9;
+  --text: #1a1916;
+  --text2: #7a7870;
+  --text3: #b0ae a8;
+  --border: rgba(26,25,22,0.1);
+  --border2: rgba(26,25,22,0.18);
+  --green: #2d6a4f;
+  --green-bg: #d8f3dc;
+  --red: #c1121f;
+  --red-bg: #fce4e4;
+  --blue: #1d4e89;
+  --blue-bg: #dbeafe;
+  --orange: #9c4a1a;
+  --orange-bg: #fde8d0;
+  --accent: #2d6a4f;
+  --r: 10px;
+  --rl: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); }
+#app { display: flex; flex-direction: column; height: 100%; max-width: 430px; margin: 0 auto; position: relative; }
+
+/* Tab bar */
+.tab-bar {
+  display: flex; background: var(--surface); border-top: 1px solid var(--border);
+  padding: 8px 4px max(8px, env(safe-area-inset-bottom)); flex-shrink: 0;
+}
+.tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 4px 2px; border: none; background: none; cursor: pointer; border-radius: 8px; transition: background 0.15s; }
+.tab-btn .tab-icon { font-size: 20px; line-height: 1; }
+.tab-btn .tab-lbl { font-size: 10px; font-weight: 500; color: var(--text2); font-family: 'DM Sans', sans-serif; }
+.tab-btn.active .tab-lbl { color: var(--accent); }
+.tab-btn.active .tab-icon { transform: translateY(-1px); }
+
+/* Screen */
+.screen { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding: 0 0 16px; }
+.screen-inner { padding: 0 16px; }
+.screen-header { padding: 16px 16px 12px; padding-top: max(16px, env(safe-area-inset-top)); }
+.screen-title { font-size: 26px; font-weight: 600; color: var(--text); letter-spacing: -0.5px; }
+
+/* Cards */
+.card { background: var(--surface); border-radius: var(--rl); border: 1px solid var(--border); margin-bottom: 10px; overflow: hidden; }
+.card-body { padding: 14px; }
+
+/* Metric grid */
+.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.metric { background: var(--surface); border-radius: var(--r); border: 1px solid var(--border); padding: 12px 14px; }
+.metric-lbl { font-size: 11px; color: var(--text2); margin-bottom: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.metric-val { font-size: 17px; font-weight: 600; color: var(--text); font-family: 'DM Mono', monospace; letter-spacing: -0.5px; }
+
+/* Row */
+.row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.row:last-child { border-bottom: none; }
+.row-main { flex: 1; min-width: 0; }
+.row-name { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-name.dim { color: var(--text2); text-decoration: line-through; }
+.row-sub { font-size: 11px; color: var(--text2); margin-top: 1px; }
+.row-amt { font-size: 13px; font-weight: 600; color: var(--text); font-family: 'DM Mono', monospace; white-space: nowrap; }
+.row-amt.dim { color: var(--text2); }
+
+/* Check button */
+.check-btn { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border2); background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; }
+.check-btn.on { background: var(--green-bg); border-color: var(--green); }
+.check-btn.on::after { content: '✓'; font-size: 11px; color: var(--green); font-weight: 700; }
+
+/* Dot */
+.dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+/* Section label */
+.section-lbl { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; margin: 16px 0 6px; }
+
+/* Salary banner */
+.banner { border-radius: var(--rl); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; cursor: pointer; border: 1px solid; transition: opacity 0.15s; }
+.banner:active { opacity: 0.8; }
+.banner.green { background: var(--green-bg); border-color: var(--green); }
+.banner.orange { background: var(--orange-bg); border-color: var(--orange); }
+.banner-title { font-size: 13px; font-weight: 600; }
+.banner-sub { font-size: 11px; margin-top: 2px; opacity: 0.8; }
+.banner-icon { font-size: 24px; }
+
+/* Progress */
+.progress-wrap { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+
+/* Buttons */
+.btn-primary { width: 100%; padding: 13px; background: var(--text); color: var(--bg); border: none; border-radius: var(--r); font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: opacity 0.15s; }
+.btn-primary:active { opacity: 0.8; }
+.btn-ghost { width: 100%; padding: 11px; border: 1.5px dashed var(--border2); border-radius: var(--r); background: none; color: var(--text2); font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; margin-top: 8px; }
+.btn-sm { padding: 7px 14px; border: 1px solid var(--border2); border-radius: 8px; background: none; color: var(--text2); font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.btn-danger { padding: 5px 10px; border: 1px solid var(--red); border-radius: 7px; background: none; color: var(--red); font-size: 11px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+/* Month bar */
+.month-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.month-nav { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 7px 14px; cursor: pointer; font-size: 15px; color: var(--text); }
+.month-nav:active { background: var(--surface2); }
+.month-lbl { font-size: 15px; font-weight: 600; color: var(--text); }
+
+/* Chips */
+.chip-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 10px; scrollbar-width: none; }
+.chip-row::-webkit-scrollbar { display: none; }
+.chip { display: flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border2); background: var(--surface); color: var(--text2); font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+.chip.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+.chip.active .dot { background: var(--bg) !important; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-box { background: var(--surface); border-radius: 20px 20px 0 0; padding: 20px 20px max(20px, env(safe-area-inset-bottom)); width: 100%; max-width: 430px; max-height: 90vh; overflow-y: auto; transform: translateY(100%); transition: transform 0.3s cubic-bezier(.32,.72,0,1); }
+.modal-overlay.open .modal-box { transform: translateY(0); }
+.modal-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 16px; }
+.modal-title { font-size: 17px; font-weight: 600; margin-bottom: 16px; }
+.modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+.modal-actions .btn-primary { flex: 1; }
+
+/* Form */
+.field-label { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 5px; margin-top: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+.field-label:first-child { margin-top: 0; }
+.f-input { width: 100%; padding: 11px 12px; border: 1px solid var(--border2); border-radius: var(--r); background: var(--surface2); color: var(--text); font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none; }
+.f-input:focus { border-color: var(--text); }
+.f-select-wrap { position: relative; }
+.f-select { width: 100%; padding: 11px 12px; border: 1px solid var(--border2); border-radius: var(--r); background: var(--surface2); color: var(--text); font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none; appearance: none; }
+.f-select-wrap::after { content: '⌄'; position: absolute; right: 12px; top: 50%; transform: translateY(-55%); color: var(--text2); pointer-events: none; font-size: 16px; }
+
+/* Bar chart */
+.bar-chart { display: flex; gap: 3px; align-items: flex-end; height: 64px; margin-bottom: 16px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; justify-content: flex-end; }
+.bar-fill { width: 100%; border-radius: 3px 3px 0 0; min-height: 3px; transition: height 0.3s ease; }
+.bar-lbl { font-size: 9px; color: var(--text2); font-weight: 500; }
+
+/* Search */
+.search-wrap { position: relative; margin-bottom: 10px; }
+.search-wrap .f-input { padding-left: 36px; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; }
+.search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: var(--border); border: none; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 10px; color: var(--text2); }
+
+/* Balance edit */
+.bal-display { font-size: 18px; font-weight: 700; color: var(--text); border-bottom: 1.5px dashed var(--border2); cursor: pointer; font-family: 'DM Mono', monospace; letter-spacing: -0.5px; }
+.bal-display:active { color: var(--accent); }
+.bal-edit-row { display: flex; gap: 6px; align-items: center; }
+.bal-input { width: 110px; padding: 5px 8px; border: 1px solid var(--text); border-radius: 7px; font-size: 15px; font-weight: 600; font-family: 'DM Mono', monospace; background: var(--surface); color: var(--text); outline: none; }
+.bal-save { padding: 5px 10px; background: var(--text); color: var(--bg); border: none; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+/* Toast */
+.toast { position: fixed; bottom: calc(70px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%) translateY(8px); background: var(--text); color: var(--bg); padding: 9px 18px; border-radius: 20px; font-size: 13px; font-weight: 500; white-space: nowrap; opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 200; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Highlight */
+mark { background: #fde68a; border-radius: 2px; padding: 0 1px; font-style: normal; }
+
+/* Empty */
+.empty { text-align: center; padding: 40px 20px; color: var(--text2); font-size: 13px; }
+
+/* Account card */
+.acct-card { background: var(--surface); border-radius: var(--rl); border: 1px solid var(--border); margin-bottom: 10px; overflow: hidden; }
+.acct-card-body { padding: 14px; }
+
+/* Util */
+.green-text { color: var(--green); }
+.red-text { color: var(--red); }
+.blue-text { color: var(--blue); }
+.orange-text { color: var(--orange); }
+.flex-row { display: flex; align-items: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.gap-8 { gap: 8px; }
+.mt-4 { margin-top: 4px; }
+.mt-8 { margin-top: 8px; }
+.mt-16 { margin-top: 16px; }
+.small { font-size: 11px; color: var(--text2); }
+.mono { font-family: 'DM Mono', monospace; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="screen" id="screen"></div>
+  <div class="tab-bar" id="tabBar"></div>
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModalOnBg(event)">
+    <div class="modal-box" id="modalBox"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const MONTHS_S = ['Jan','Feb','Mrz','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+const ACCT_COLORS = ['#2d6a4f','#1d4e89','#9c4a1a','#6b2d8b','#1a5276','#7d3c1e'];
+const STORAGE_KEY = 'ft_v1';
+
+const DEFAULT = {
+  accounts: [
+    { id:1, name:'Fixkosten', type:'Fixkosten', color:'#1d4e89', alloc:335.25, balance:0 },
+    { id:2, name:'Sparplan', type:'Sparen', color:'#2d6a4f', alloc:100, balance:0 },
+    { id:3, name:'Taschengeld', type:'Bar/Karte', color:'#9c4a1a', alloc:100, balance:100 },
+    { id:4, name:'Girokonto', type:'Rest', color:'#6b2d8b', alloc:0, balance:565 },
+  ],
+  salaryEvents: {}, expenses: {},
+};
+
+let S = load();
+let currentTab = 0;
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+let yearView = new Date().getFullYear();
+let yearSearch = '';
+let yearFilterAcct = 0;
+let yearCollapsed = {};
+let filterAcct = 0;
+let editingBalanceId = null;
+
+function load() {
+  try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : JSON.parse(JSON.stringify(DEFAULT)); }
+  catch(e) { return JSON.parse(JSON.stringify(DEFAULT)); }
+}
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); showToast('Gespeichert'); }
+  catch(e) {}
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+function fmt(n) { return (n<0?'-':'') + Math.abs(n).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' €'; }
+function mk(y,m) { return `${y ?? currentYear}-${m ?? currentMonth}`; }
+function getExps(y,m) { return S.expenses[mk(y,m)] || []; }
+function getSalary(y,m) { return S.salaryEvents[mk(y,m)]; }
+function restAcct() { return S.accounts.find(a => a.type === 'Rest'); }
+
+// ── Navigation ──────────────────────────────────────────
+function setTab(i) { currentTab = i; editingBalanceId = null; render(); }
+function prevMonth() { if(currentMonth===0){currentMonth=11;currentYear--;}else currentMonth--; render(); }
+function nextMonth() { if(currentMonth===11){currentMonth=0;currentYear++;}else currentMonth++; render(); }
+function prevYear() { yearView--; render(); }
+function nextYear() { yearView++; render(); }
+
+// ── Modal ───────────────────────────────────────────────
+function openModal(html) {
+  document.getElementById('modalBox').innerHTML = `<div class="modal-handle"></div>` + html;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModalOnBg(e) { if(e.target === document.getElementById('modalOverlay')) closeModal(); }
+
+// ── Salary ──────────────────────────────────────────────
+function openSalaryModal() {
+  const sal = getSalary();
+  const fixedAlloc = S.accounts.filter(a=>a.type!=='Rest').reduce((s,a)=>s+a.alloc,0);
+  const rest = restAcct();
+  openModal(`
+    <div class="modal-title">💰 Gehalt eingegangen</div>
+    <div class="field-label">Betrag (€)</div>
+    <input class="f-input" id="sal-inp" type="number" inputmode="decimal" placeholder="z.B. 1250" value="${sal?sal.amount:''}">
+    <div class="small mt-8">Feste Zuteilungen: ${fmt(fixedAlloc)} · Rest → ${rest?.name||'Girokonto'}</div>
+    <div class="card mt-8" style="margin-bottom:0">
+      ${S.accounts.map(a=>`<div class="row"><div class="dot" style="background:${a.color}"></div><div class="row-main"><div class="row-name">${a.name}</div></div><div class="row-amt" style="color:var(--blue)">${a.type==='Rest'?'Rest':fmt(a.alloc)}</div></div>`).join('')}
+    </div>
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="closeModal()">Abbrechen</button>
+      <button class="btn-primary" onclick="confirmSalary()">Bestätigen & verteilen</button>
+    </div>
+  `);
+  setTimeout(() => document.getElementById('sal-inp')?.focus(), 350);
+}
+
+function confirmSalary() {
+  const amt = parseFloat(document.getElementById('sal-inp').value.replace(',','.'));
+  if(isNaN(amt)||amt<=0) return;
+  const fixedAlloc = S.accounts.filter(a=>a.type!=='Rest').reduce((s,a)=>s+a.alloc,0);
+  const restAmt = Math.max(0, amt - fixedAlloc);
+  const key = mk();
+  S.salaryEvents[key] = { amount: amt, date: new Date().toLocaleDateString('de-DE'), distribution: S.accounts.map(a=>({accountId:a.id, amount: a.type==='Rest'?restAmt:a.alloc})) };
+  S.accounts.forEach(a => { const d = S.salaryEvents[key].distribution.find(d=>d.accountId===a.id); if(d) a.balance = parseFloat((a.balance+d.amount).toFixed(2)); });
+  save(); closeModal(); render();
+}
+
+// ── Expenses ────────────────────────────────────────────
+function openAddExpense() {
+  openModal(`
+    <div class="modal-title">Ausgabe hinzufügen</div>
+    <div class="field-label">Bezeichnung *</div>
+    <input class="f-input" id="exp-name" placeholder="z.B. Audible">
+    <div class="field-label">Betrag (€) *</div>
+    <input class="f-input" id="exp-amt" type="number" inputmode="decimal" placeholder="4.99">
+    <div class="field-label">Konto</div>
+    <div class="f-select-wrap"><select class="f-select" id="exp-acc">${S.accounts.map(a=>`<option value="${a.id}">${a.name}</option>`).join('')}</select></div>
+    <div class="field-label">Beschreibung (optional)</div>
+    <input class="f-input" id="exp-desc" placeholder="z.B. Monatliches Abo">
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="closeModal()">Abbrechen</button>
+      <button class="btn-primary" onclick="confirmAddExpense()">Hinzufügen</button>
+    </div>
+  `);
+  setTimeout(() => document.getElementById('exp-name')?.focus(), 350);
+}
+
+function confirmAddExpense() {
+  const name = document.getElementById('exp-name').value.trim();
+  const amt = parseFloat(document.getElementById('exp-amt').value.replace(',','.'));
+  const accId = parseInt(document.getElementById('exp-acc').value);
+  const desc = document.getElementById('exp-desc').value.trim();
+  if(!name||isNaN(amt)||amt<=0) return;
+  const key = mk();
+  if(!S.expenses[key]) S.expenses[key]=[];
+  S.expenses[key].push({id:Date.now(), name, amount:amt, accountId:accId, description:desc, paid:false, date:new Date().toLocaleDateString('de-DE')});
+  save(); closeModal(); render();
+}
+
+function togglePaid(id) {
+  const key = mk();
+  const e = (S.expenses[key]||[]).find(x=>x.id===id); if(!e) return;
+  e.paid = !e.paid;
+  const acc = S.accounts.find(a=>a.id===e.accountId);
+  if(acc) acc.balance = parseFloat((acc.balance+(e.paid?-e.amount:e.amount)).toFixed(2));
+  save(); render();
+}
+
+function deleteExpense(id) {
+  if(!confirm('Ausgabe löschen?')) return;
+  const key = mk();
+  const e = (S.expenses[key]||[]).find(x=>x.id===id);
+  if(e&&e.paid) { const acc=S.accounts.find(a=>a.id===e.accountId); if(acc) acc.balance=parseFloat((acc.balance+e.amount).toFixed(2)); }
+  S.expenses[key] = (S.expenses[key]||[]).filter(x=>x.id!==id);
+  save(); render();
+}
+
+// ── Balance edit ────────────────────────────────────────
+function startEditBalance(id) { editingBalanceId = id; render(); }
+function saveBalance(id) {
+  const el = document.getElementById('bal-inp-'+id); if(!el) return;
+  const val = parseFloat(el.value.replace(',','.'));
+  if(!isNaN(val)) { const acc=S.accounts.find(a=>a.id===id); if(acc) acc.balance=val; }
+  editingBalanceId = null; save(); render();
+}
+
+// ── Accounts ────────────────────────────────────────────
+function openAddAccount() {
+  openModal(`
+    <div class="modal-title">Konto hinzufügen</div>
+    <div class="field-label">Name *</div>
+    <input class="f-input" id="acct-name" placeholder="z.B. Notgroschen">
+    <div class="field-label">Typ</div>
+    <div class="f-select-wrap"><select class="f-select" id="acct-type">${['Fixkosten','Sparen','Bar/Karte','Sonstiges','Rest'].map(t=>`<option>${t}</option>`).join('')}</select></div>
+    <div class="field-label">Monatliche Zuteilung (€)</div>
+    <input class="f-input" id="acct-alloc" type="number" inputmode="decimal" placeholder="0">
+    <div class="field-label">Aktueller Kontostand (€)</div>
+    <input class="f-input" id="acct-bal" type="number" inputmode="decimal" placeholder="0">
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="closeModal()">Abbrechen</button>
+      <button class="btn-primary" onclick="confirmAddAccount()">Hinzufügen</button>
+    </div>
+  `);
+}
+
+function confirmAddAccount() {
+  const name = document.getElementById('acct-name').value.trim(); if(!name) return;
+  const type = document.getElementById('acct-type').value;
+  const alloc = parseFloat(document.getElementById('acct-alloc').value)||0;
+  const bal = parseFloat(document.getElementById('acct-bal').value)||0;
+  S.accounts.push({id:Date.now(), name, type, color:ACCT_COLORS[S.accounts.length%ACCT_COLORS.length], alloc, balance:bal});
+  save(); closeModal(); render();
+}
+
+// ── Settings ────────────────────────────────────────────
+function saveSettings() {
+  S.accounts.forEach(a => {
+    const nel = document.getElementById('set-name-'+a.id); if(nel) a.name=nel.value||a.name;
+    const tel = document.getElementById('set-type-'+a.id); if(tel) a.type=tel.value;
+    const ael = document.getElementById('set-alloc-'+a.id); if(ael&&a.type!=='Rest') a.alloc=parseFloat(ael.value)||0;
+  });
+  save(); render();
+}
+
+function resetAll() {
+  if(!confirm('Alle Daten wirklich löschen? Das kann nicht rückgängig gemacht werden.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  S = JSON.parse(JSON.stringify(DEFAULT));
+  render();
+}
+
+// ── Year helpers ────────────────────────────────────────
+function getAllYearExps() {
+  const r=[];
+  for(let m=0;m<12;m++) (S.expenses[`${yearView}-${m}`]||[]).forEach(e=>r.push({...e,_month:m}));
+  return r;
+}
+function matchSearch(e,q) { if(!q) return true; const l=q.toLowerCase(); return e.name.toLowerCase().includes(l)||(e.description||'').toLowerCase().includes(l); }
+function hlText(text,q) {
+  if(!q||!text) return escHtml(text||'');
+  const l=q.toLowerCase(); const i=text.toLowerCase().indexOf(l); if(i===-1) return escHtml(text);
+  return escHtml(text.slice(0,i))+'<mark>'+escHtml(text.slice(i,i+q.length))+'</mark>'+escHtml(text.slice(i+q.length));
+}
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toggleYearCollapse(m) { yearCollapsed[m] = yearCollapsed[m]===false; render(); }
+
+// ── Render ───────────────────────────────────────────────
+const TABS = [
+  { lbl:'Übersicht', icon:'📊' },
+  { lbl:'Ausgaben', icon:'💸' },
+  { lbl:'Jahr', icon:'📅' },
+  { lbl:'Konten', icon:'🏦' },
+  { lbl:'Einstellungen', icon:'⚙️' },
+];
+
+function renderTabBar() {
+  document.getElementById('tabBar').innerHTML = TABS.map((t,i)=>`
+    <button class="tab-btn ${currentTab===i?'active':''}" onclick="setTab(${i})">
+      <span class="tab-icon">${t.icon}</span>
+      <span class="tab-lbl">${t.lbl}</span>
+    </button>
+  `).join('');
+}
+
+function renderScreen() {
+  const renders = [renderOverview, renderAusgaben, renderJahr, renderKonten, renderEinstellungen];
+  document.getElementById('screen').innerHTML = renders[currentTab]();
+}
+
+function render() { renderTabBar(); renderScreen(); }
+
+// ── Overview ────────────────────────────────────────────
+function renderOverview() {
+  const sal = getSalary(); const exps = getExps();
+  const totalExp = exps.reduce((s,e)=>s+e.amount,0);
+  const pendingExp = exps.filter(e=>!e.paid).reduce((s,e)=>s+e.amount,0);
+  const salAmt = sal?sal.amount:0;
+  const totalBal = S.accounts.reduce((s,a)=>s+a.balance,0);
+  const usedPct = salAmt>0?Math.min(100,Math.round(totalExp/salAmt*100)):0;
+  const pColor = usedPct>90?'var(--red)':usedPct>70?'var(--orange)':'var(--green)';
+
+  const pendingRows = exps.filter(e=>!e.paid).map(e=>{
+    const acc=S.accounts.find(a=>a.id===e.accountId);
+    return `<div class="row">
+      <button class="check-btn" onclick="togglePaid(${e.id})"></button>
+      <div class="row-main"><div class="row-name">${escHtml(e.name)}</div>${e.description?`<div class="row-sub">${escHtml(e.description)}</div>`:''}</div>
+      ${acc?`<div class="dot" style="background:${acc.color}"></div>`:''}
+      <div class="row-amt">${fmt(e.amount)}</div>
+    </div>`;
+  }).join('');
+
+  const distRows = sal?sal.distribution.map(d=>{
+    const acc=S.accounts.find(a=>a.id===d.accountId); if(!acc) return '';
+    return `<div class="row"><div class="dot" style="background:${acc.color}"></div><div class="row-main"><div class="row-name">${escHtml(acc.name)}</div></div><div class="row-amt blue-text">${fmt(d.amount)}</div></div>`;
+  }).join(''):'';
+
+  return `
+    <div class="screen-header"><div class="screen-title">Finanzen</div></div>
+    <div class="screen-inner">
+      <div class="month-bar">
+        <button class="month-nav" onclick="prevMonth()">←</button>
+        <span class="month-lbl">${MONTHS[currentMonth]} ${currentYear}</span>
+        <button class="month-nav" onclick="nextMonth()">→</button>
+      </div>
+
+      <div class="banner ${sal?'green':'orange'}" onclick="openSalaryModal()">
+        <div>
+          <div class="banner-title" style="color:${sal?'var(--green)':'var(--orange)'}">${sal?`Gehalt gebucht: ${fmt(sal.amount)}`:'Gehalt noch nicht gebucht'}</div>
+          <div class="banner-sub" style="color:${sal?'var(--green)':'var(--orange)'}">${sal?`${sal.date} · auf ${S.accounts.length} Konten verteilt`:'Tippe hier wenn Gehalt eingegangen ist'}</div>
+        </div>
+        <div class="banner-icon">${sal?'✅':'💰'}</div>
+      </div>
+
+      <div class="metric-grid">
+        <div class="metric"><div class="metric-lbl">Einnahmen</div><div class="metric-val green-text">${salAmt>0?fmt(salAmt):'—'}</div></div>
+        <div class="metric"><div class="metric-lbl">Ausstehend</div><div class="metric-val ${pendingExp>0?'orange-text':''}">${fmt(pendingExp)}</div></div>
+        <div class="metric"><div class="metric-lbl">Ausgaben</div><div class="metric-val">${fmt(totalExp)}</div></div>
+        <div class="metric"><div class="metric-lbl">Gesamtsaldo</div><div class="metric-val ${totalBal<0?'red-text':'blue-text'}">${fmt(totalBal)}</div></div>
+      </div>
+
+      ${salAmt>0?`<div class="card" style="margin-bottom:10px"><div class="card-body" style="padding:12px 14px">
+        <div class="flex-between" style="margin-bottom:6px"><span class="small">Budget verbraucht</span><span class="small mono">${usedPct}%</span></div>
+        <div class="progress-wrap"><div class="progress-fill" style="width:${usedPct}%;background:${pColor}"></div></div>
+      </div></div>`:''}
+
+      ${sal?`<div class="section-lbl">Verteilung</div><div class="card">${distRows}</div>`:''}
+
+      ${pendingExp>0?`<div class="section-lbl">Ausstehend (${exps.filter(e=>!e.paid).length})</div><div class="card">${pendingRows}</div>`:''}
+      ${pendingExp===0&&exps.length>0?`<div style="text-align:center;padding:16px;font-size:13px;color:var(--green)">✓ Alle Ausgaben bezahlt</div>`:''}
+    </div>`;
+}
+
+// ── Ausgaben ────────────────────────────────────────────
+function renderAusgaben() {
+  const exps = getExps();
+  const filtered = filterAcct===0?exps:exps.filter(e=>e.accountId===filterAcct);
+  const pending = filtered.filter(e=>!e.paid);
+  const paid = filtered.filter(e=>e.paid);
+
+  const chips = `<div class="chip-row">
+    <div class="chip ${filterAcct===0?'active':''}" onclick="filterAcct=0;render()">Alle</div>
+    ${S.accounts.map(a=>`<div class="chip ${filterAcct===a.id?'active':''}" onclick="filterAcct=${a.id};render()"><div class="dot" style="background:${filterAcct===a.id?'var(--bg)':a.color}"></div>${escHtml(a.name)}</div>`).join('')}
+  </div>`;
+
+  const expRow = (e,isLast) => {
+    const acc=S.accounts.find(a=>a.id===e.accountId);
+    return `<div class="row" style="${isLast?'border-bottom:none':''}">
+      <button class="check-btn ${e.paid?'on':''}" onclick="togglePaid(${e.id})"></button>
+      <div class="row-main">
+        <div class="row-name ${e.paid?'dim':''}">${escHtml(e.name)}</div>
+        <div class="row-sub">${[e.description?escHtml(e.description):null, e.date, acc?escHtml(acc.name):null].filter(Boolean).join(' · ')}</div>
+      </div>
+      <div class="row-amt ${e.paid?'dim':''}">${fmt(e.amount)}</div>
+      <button class="btn-danger" onclick="deleteExpense(${e.id})">✕</button>
+    </div>`;
+  };
+
+  return `
+    <div class="screen-header"><div class="screen-title">Ausgaben</div></div>
+    <div class="screen-inner">
+      <div class="month-bar">
+        <button class="month-nav" onclick="prevMonth()">←</button>
+        <span class="month-lbl">${MONTHS[currentMonth]} ${currentYear}</span>
+        <button class="month-nav" onclick="nextMonth()">→</button>
+      </div>
+      ${chips}
+      <div class="small" style="margin-bottom:10px">${filtered.length} Ausgaben · ${fmt(filtered.reduce((s,e)=>s+e.amount,0))}</div>
+      ${pending.length>0?`<div class="section-lbl">Ausstehend</div><div class="card">${pending.map((e,i)=>expRow(e,i===pending.length-1)).join('')}</div>`:''}
+      ${paid.length>0?`<div class="section-lbl">Bezahlt · ${fmt(paid.reduce((s,e)=>s+e.amount,0))}</div><div class="card">${paid.map((e,i)=>expRow(e,i===paid.length-1)).join('')}</div>`:''}
+      ${filtered.length===0?`<div class="empty">Noch keine Ausgaben</div>`:''}
+      <button class="btn-ghost" onclick="openAddExpense()">+ Ausgabe hinzufügen</button>
+    </div>`;
+}
+
+// ── Jahr ────────────────────────────────────────────────
+function renderJahr() {
+  const q = yearSearch.trim();
+  const allExps = getAllYearExps();
+  const filtered = allExps.filter(e=>(yearFilterAcct===0||e.accountId===yearFilterAcct)&&matchSearch(e,q));
+  const yearTotal = filtered.reduce((s,e)=>s+e.amount,0);
+  const yearPaid = filtered.filter(e=>e.paid).reduce((s,e)=>s+e.amount,0);
+  const mTotals = Array.from({length:12},(_,m)=>filtered.filter(e=>e._month===m).reduce((s,e)=>s+e.amount,0));
+  const maxBar = Math.max(...mTotals,1);
+  const curM = new Date().getMonth();
+
+  const bars = mTotals.map((v,i)=>{
+    const h = Math.max(3,Math.round(v/maxBar*52));
+    const isCur = i===curM&&yearView===new Date().getFullYear();
+    return `<div class="bar-col"><div class="bar-fill" style="height:${h}px;background:${isCur?'var(--blue)':'#bfd7f0'}"></div><div class="bar-lbl">${MONTHS_S[i][0]}</div></div>`;
+  }).join('');
+
+  const chips = `<div class="chip-row">
+    <div class="chip ${yearFilterAcct===0?'active':''}" onclick="yearFilterAcct=0;render()">Alle</div>
+    ${S.accounts.map(a=>`<div class="chip ${yearFilterAcct===a.id?'active':''}" onclick="yearFilterAcct=${a.id};render()"><div class="dot" style="background:${yearFilterAcct===a.id?'var(--bg)':a.color}"></div>${escHtml(a.name)}</div>`).join('')}
+  </div>`;
+
+  const groups = Array.from({length:12},(_,i)=>11-i).map(m=>{
+    const rows=filtered.filter(e=>e._month===m); if(!rows.length) return '';
+    const total=rows.reduce((s,e)=>s+e.amount,0);
+    const col = yearCollapsed[m]!==false;
+    const rowsHtml = rows.map(e=>{
+      const acc=S.accounts.find(a=>a.id===e.accountId);
+      return `<div class="row">
+        ${acc?`<div class="dot" style="background:${acc.color}"></div>`:''}
+        <div class="row-main">
+          <div class="row-name ${e.paid?'dim':''}">${hlText(e.name,q)}</div>
+          <div class="row-sub">${[e.description?hlText(e.description,q):null,e.date,acc?escHtml(acc.name):null].filter(Boolean).join(' · ')}</div>
+        </div>
+        <div class="row-amt ${e.paid?'dim':''}">${fmt(e.amount)}</div>
+        <span style="font-size:10px;color:${e.paid?'var(--green)':'var(--orange)'}">${e.paid?'✓':'○'}</span>
+      </div>`;
+    }).join('');
+    return `<div>
+      <div class="flex-between" style="padding:6px 2px;cursor:pointer" onclick="toggleYearCollapse(${m})">
+        <span style="font-size:13px;font-weight:600">${MONTHS[m]} ${yearView}</span>
+        <div class="flex-row gap-8"><span class="small mono">${fmt(total)}</span><span style="font-size:10px;color:var(--text2)">${col?'▼':'▲'}</span></div>
+      </div>
+      ${col?'':`<div class="card">${rowsHtml}</div>`}
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="screen-header"><div class="screen-title">Jahr</div></div>
+    <div class="screen-inner">
+      <div class="month-bar">
+        <button class="month-nav" onclick="prevYear()">←</button>
+        <span class="month-lbl">${yearView}</span>
+        <button class="month-nav" onclick="nextYear()">→</button>
+      </div>
+
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="f-input" placeholder="Suche nach Name oder Beschreibung…" value="${escHtml(q)}" oninput="yearSearch=this.value;render()" style="padding-left:36px">
+        ${q?`<button class="search-clear" onclick="yearSearch='';render()">✕</button>`:''}
+      </div>
+
+      ${chips}
+
+      <div class="metric-grid">
+        <div class="metric"><div class="metric-lbl">Jahresausgaben</div><div class="metric-val">${fmt(yearTotal)}</div></div>
+        <div class="metric"><div class="metric-lbl">Bezahlt</div><div class="metric-val green-text">${fmt(yearPaid)}</div></div>
+        <div class="metric"><div class="metric-lbl">Ø / Monat</div><div class="metric-val blue-text">${fmt(yearTotal/12)}</div></div>
+        <div class="metric"><div class="metric-lbl">Einträge</div><div class="metric-val">${filtered.length}</div></div>
+      </div>
+
+      <div class="bar-chart">${bars}</div>
+
+      ${filtered.length===0?`<div class="empty">${q?`Keine Treffer für „${escHtml(q)}"` :'Keine Ausgaben in diesem Jahr'}</div>`:''}
+      ${groups}
+    </div>`;
+}
+
+// ── Konten ───────────────────────────────────────────────
+function renderKonten() {
+  const exps = getExps();
+  const cards = S.accounts.map(a=>{
+    const accExps = exps.filter(e=>e.accountId===a.id);
+    const paidSpent = accExps.filter(e=>e.paid).reduce((s,e)=>s+e.amount,0);
+    const pending = accExps.filter(e=>!e.paid).reduce((s,e)=>s+e.amount,0);
+    const pct = (a.balance+paidSpent)>0?Math.min(100,Math.round(paidSpent/(a.balance+paidSpent)*100)):0;
+    const isEditing = editingBalanceId===a.id;
+    const balSection = isEditing
+      ?`<div class="bal-edit-row"><input class="bal-input" id="bal-inp-${a.id}" value="${a.balance}" type="number" inputmode="decimal" onkeydown="if(event.key==='Enter')saveBalance(${a.id})"><button class="bal-save" onclick="saveBalance(${a.id})">OK</button><button class="btn-sm" onclick="editingBalanceId=null;render()" style="padding:5px 8px">✕</button></div>`
+      :`<div><span class="bal-display" onclick="startEditBalance(${a.id})">${fmt(a.balance)}</span><div class="small mt-4" style="text-align:right">aktuell ✎</div></div>`;
+
+    const recentExps = accExps.slice(0,3).map(e=>`
+      <div class="flex-between" style="padding:2px 0">
+        <span style="font-size:12px;color:${e.paid?'var(--text2)':'var(--text)'};text-decoration:${e.paid?'line-through':'none'}">${escHtml(e.name)}</span>
+        <span style="font-size:12px;font-weight:600;color:${e.paid?'var(--text2)':'var(--text)'}; font-family:'DM Mono',monospace">${fmt(e.amount)}</span>
+      </div>`).join('');
+
+    return `<div class="acct-card">
+      <div class="acct-card-body">
+        <div class="flex-row gap-8" style="align-items:flex-start">
+          <div class="dot" style="background:${a.color};width:12px;height:12px;margin-top:4px"></div>
+          <div style="flex:1">
+            <div class="flex-between" style="margin-bottom:8px;align-items:flex-start">
+              <div>
+                <div style="font-size:15px;font-weight:600">${escHtml(a.name)}</div>
+                <div class="small">${escHtml(a.type)} · ${fmt(a.alloc)}/Monat</div>
+              </div>
+              ${balSection}
+            </div>
+            <div class="progress-wrap"><div class="progress-fill" style="width:${pct}%;background:${a.color};opacity:.8"></div></div>
+            <div class="flex-between mt-4">
+              <span class="small">Bezahlt: ${fmt(paidSpent)}</span>
+              <span style="font-size:11px;color:${pending>0?'var(--orange)':'var(--green)'}">${pending>0?`Ausstehend: ${fmt(pending)}`:'Alles bezahlt'}</span>
+            </div>
+            ${accExps.length>0?`<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:8px">${recentExps}${accExps.length>3?`<div class="small mt-4">+${accExps.length-3} weitere</div>`:''}</div>`:''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="screen-header"><div class="screen-title">Konten</div></div>
+    <div class="screen-inner">
+      <div class="small" style="margin-bottom:16px">Tippe auf einen Kontostand zum Bearbeiten.</div>
+      ${cards}
+      <button class="btn-ghost" onclick="openAddAccount()">+ Konto hinzufügen</button>
+    </div>`;
+}
+
+// ── Einstellungen ────────────────────────────────────────
+function renderEinstellungen() {
+  const fixedAlloc = S.accounts.filter(a=>a.type!=='Rest').reduce((s,a)=>s+a.alloc,0);
+  const rows = S.accounts.map(a=>`
+    <div class="card" style="margin-bottom:8px">
+      <div class="card-body" style="display:flex;align-items:center;gap:10px">
+        <div class="dot" style="background:${a.color};width:10px;height:10px;flex-shrink:0"></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+          <input class="f-input" id="set-name-${a.id}" value="${escHtml(a.name)}" placeholder="Kontoname">
+          <div class="f-select-wrap"><select class="f-select" id="set-type-${a.id}">${['Fixkosten','Sparen','Bar/Karte','Sonstiges','Rest'].map(t=>`<option ${a.type===t?'selected':''}>${t}</option>`).join('')}</select></div>
+        </div>
+        <div style="text-align:right;min-width:90px">
+          <div class="small" style="margin-bottom:4px">${a.type==='Rest'?'Auto':'€/Monat'}</div>
+          ${a.type==='Rest'?`<span class="small">Rest</span>`:`<input class="f-input" id="set-alloc-${a.id}" type="number" inputmode="decimal" value="${a.alloc}" style="width:88px;text-align:right">`}
+        </div>
+      </div>
+    </div>`).join('');
+
+  return `
+    <div class="screen-header"><div class="screen-title">Einstellungen</div></div>
+    <div class="screen-inner">
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px">Konten & Zuteilung</div>
+      <div class="small" style="margin-bottom:14px">"Rest"-Konten erhalten den verbleibenden Betrag automatisch.</div>
+      ${rows}
+      <div class="small" style="margin-bottom:16px">Feste Zuteilungen: ${fmt(fixedAlloc)}</div>
+      <button class="btn-primary" onclick="saveSettings()" style="margin-bottom:32px">Speichern</button>
+      <div style="border-top:1px solid var(--border);padding-top:24px">
+        <div style="font-size:14px;font-weight:600;margin-bottom:6px">Daten</div>
+        <div class="small" style="margin-bottom:12px">Alle Ausgaben, Konten und gespeicherten Daten löschen.</div>
+        <button onclick="resetAll()" style="padding:10px 16px;border:1px solid var(--red);border-radius:8px;background:none;color:var(--red);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Alle Daten zurücksetzen</button>
+      </div>
+    </div>`;
+}
+
+render();
+</script>
+</body>
+</html>
